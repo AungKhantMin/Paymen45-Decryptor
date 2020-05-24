@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{D9A64BA2-8466-4B21-A946-84E0CCC16F0F}</ProjectGuid>
+    <ProjectGuid>{FAC98317-BE05-4F46-8E9F-B16A2852A8C6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My5BE</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
@@ -163,7 +163,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="5BE.cpp" />
+    <ClCompile Include="CLI.cpp" />
     <ClCompile Include="Decryptor.cpp" />
     <ClCompile Include="MemExtractor.cpp" />
   </ItemGroup>

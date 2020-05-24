@@ -15,13 +15,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="5BE.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MemExtractor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Decryptor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CLI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
