@@ -32,8 +32,13 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
                         if (i != chunk.end())
                         {
                             int index = std::distance(chunk.begin(), i);
-                            if (chunk[index] == 'e' && chunk[index + 1] == 'x' && chunk[index + 2] == 'p'
-                                && chunk[index + 3] == 'a' && chunk[index + 4] == 'n' && chunk[index + 5] == 'd')
+                            std::string constant;
+                            constant.resize(16);
+                            for (size_t i = 0; i < 16; i++)
+                            {
+                                constant[i] = chunk[index + i];
+                            }
+                            if (constant == "expand 32-byte k")
                             {
                                 key.resize(16);
                                 for (size_t g = 0; g < 16; g++)

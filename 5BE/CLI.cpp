@@ -17,17 +17,27 @@ int main(int argc, char* argv[])
     {
 
         printf("%s ransomware_process_id directory_to_decrypt\n",argv[0]);
+        printf("%s -k 32ByteDecryptionKey directory_to_decrypt\n", argv[0]);
         printf("Example: CLI.exe 1809 C:\\Users\\{username}\\Desktop\\\n");
     }
-    else
+    else if (argc == 3)
     {
-        DWORD pid = (int)argv[1];
+        DWORD pid = atoi(argv[1]);
         std::vector<std::string> keymatrix = MemExtractor::GetKeyInitialStateMatrix(pid);
         byte* key_t = (byte*)MemExtractor::GetKey(keymatrix);
         Decryptor::key = key_t;
         Decryptor* decryptor = new Decryptor();
-        decryptor->RecursiveSearch(argv[2]);
+        std::string startDir = argv[2]; //"C:\\Users\\hades\\Desktop\\Ransomwaer GG\\"
+        decryptor->RecursiveSearch(startDir);
         delete key_t;
+    }
+    else
+    {
+        byte* key_t = (byte*)argv[2];
+        Decryptor::key = key_t;
+        Decryptor* decryptor = new Decryptor();
+        std::string startDir = argv[3]; //"C:\\Users\\hades\\Desktop\\Ransomwaer GG\\"
+        decryptor->RecursiveSearch(startDir);
     }
 
 

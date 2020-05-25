@@ -12,8 +12,8 @@
 
 using namespace CryptoPP;
 
-#define RB 0xC0
-#define GB 0xA0
+#define RB 0x0C
+#define GB 0x0A
 class Decryptor;
 
 typedef struct {

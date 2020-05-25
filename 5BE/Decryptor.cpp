@@ -17,27 +17,37 @@ void Decryptor::DecryptFile(decrypt_ dec_args) {
 		NULL, OPEN_EXISTING, dwFileAttributes, NULL);
 	BY_HANDLE_FILE_INFORMATION file;
 	BOOL bSuccess = GetFileInformationByHandle(hFile, &file);
+	std::string orgFile = dec_args.absFilePath;
 	if (bSuccess)
 	{
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			DWORD dwPtr = SetFilePointer(hFile, -264, NULL, 2);
+			DWORD dwPtr = SetFilePointer(hFile, -520, NULL, 2);
 			if (dwPtr != INVALID_SET_FILE_POINTER)
 			{
 				byte IV[8];
 				DWORD dwByteRead;
 				bSuccess = ReadFile(hFile, IV, 8, &dwByteRead, NULL);
+				dwPtr = SetFilePointer(hFile, -520, NULL, 2);
+				SetEndOfFile(hFile);
 				if (bSuccess)
 				{
 					dwPtr = SetFilePointer(hFile, 0, NULL, 0);
-					DWORD dwSize;
-					if (file.nFileSizeHigh == 0)
+					
+					INT dwSize = file.nFileSizeHigh;
+
+					if ( dwSize != 0)
 					{
-						dwSize =((file.nFileSizeHigh * (MAXDWORD + 1)) + file.nFileSizeLow ) - 264;
+						dwSize =((file.nFileSizeHigh * (MAXDWORD + 1)) + file.nFileSizeLow ) - 520;
 					}
 					else
 					{
-						dwSize = file.nFileSizeLow - 264;
+						dwSize = file.nFileSizeLow - 520;
+					}
+
+					if (dwSize > 0x19000)
+					{
+						dwSize = 0x19000;
 					}
 					LPVOID lpBuffer = malloc(dwSize);
 					memset(lpBuffer, 0, dwSize);
@@ -52,29 +62,32 @@ void Decryptor::DecryptFile(decrypt_ dec_args) {
 						salsa20.SetKey(Decryptor::key, 32, params);
 						salsa20.ProcessData((byte*)lpOutPut, (byte*)lpBuffer, dwByteRead);
 						SetFilePointer(hFile, 0, NULL, 0);
-						SetEndOfFile(hFile);
 						bSuccess = WriteFile(hFile, lpOutPut, dwByteRead, NULL, NULL);
 						if (bSuccess)
 						{
-							std::string orgFile = dec_args.absFilePath.replace(
-								dec_args.absFilePath.begin() + dec_args.absFilePath.find(".g8R4rqWIp9"),
-								dec_args.absFilePath.end(), "");
+							orgFile = orgFile.replace(
+								orgFile.begin() + orgFile.find(".g8R4rqWIp9"),
+								orgFile.end(), "");
+							CloseHandle(hFile);
 							bSuccess = MoveFileA(dec_args.absFilePath.c_str(), orgFile.c_str());
-								
+							if (!bSuccess)
+							{
+								//printf("%d\n", GetLastError());
+							}
 						}
-						delete &salsa20;
 					}
 					free(lpBuffer);
 					free(lpOutPut);
 				}
 			}
+			else
+			{
+				bSuccess = FALSE;
+			}
 		}
 
 	}
-	dec_args.dec->printMsg(bSuccess, dec_args.absFilePath.c_str());
-	CloseHandle(hFile);
-	free(&file);
-	delete &dec_args;
+	dec_args.dec->printMsg(bSuccess, orgFile.c_str());
 }
 
 void Decryptor::printMsg(BOOL bSuccess, LPCSTR file) {
@@ -86,30 +99,36 @@ void Decryptor::printMsg(BOOL bSuccess, LPCSTR file) {
 	{
 		//Set Color
 		SetConsoleTextAttribute(hConsole, RB);
-		printf("[!] Failed To Recvoer File : %s", file);
+		printf("[!] Failed To Recvoer File : %s\n", file);
 	}
 	else
 	{
 		SetConsoleTextAttribute(hConsole, GB);
-		printf("[+] Successfully Recvoer File : %s",file);
+		printf("[+] Successfully Recvoer File : %s\n",file);
 	}
-	CloseHandle(hConsole);
 }
 
 void Decryptor::RecursiveSearch(std::string StartDir = "C:\\") {
 	HANDLE hFile;
 	WIN32_FIND_DATAA file;
+	std::string dir = StartDir + "*";
+
+	hFile = FindFirstFileA(dir.c_str(), &file);
+
 	do {
 		decrypt_ dec_args;
-		hFile = FindFirstFileA(StartDir.c_str() + '*', &file);
-		if ( hFile != INVALID_HANDLE_VALUE)
+		if ( hFile == INVALID_HANDLE_VALUE)
+		{
+			
+		}
+		else
 		{
 			if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				std::string dir = file.cFileName;
 				if (dir != "." && dir != "..")
 				{
-					this->RecursiveSearch(StartDir + dir);
+					this->RecursiveSearch(StartDir + dir + "\\");
 				}
 			}
 			else
@@ -120,11 +139,11 @@ void Decryptor::RecursiveSearch(std::string StartDir = "C:\\") {
 				{
 					dec_args.absFilePath = StartDir + fileName;
 					dec_args.dec = this;
-					HANDLE hThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&this->DecryptFileW, &dec_args, NULL, NULL);
+					Decryptor::DecryptFileW(dec_args);
 				}
 			}
 		}
 	} while (FindNextFileA(hFile,&file));
+	
 	FindClose(hFile);
-	delete &file;
 }
