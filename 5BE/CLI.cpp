@@ -13,15 +13,17 @@
 
 int main(int argc, char* argv[])
 {
-
-    printf("%s DirectoryToDecrypt\n",argv[0]);
-    printf("%s -k 32ByteDecryptionKey directory_to_decrypt\n", argv[0]);
-    printf("Example: CLI.exe C:\\Users\\{username}\\Desktop\\\n");
-    printf(".\\CLI.exe -k AA06E65714F2482BBA05B2336956552829AB7268B41F83186AB9E278A0926D84 C:\\  \n");
-    if (argc < 3)
+    if (argc == 1)
+    {
+        printf("%s DirectoryToDecrypt\n", argv[0]);
+        printf("%s -k 32ByteDecryptionKey directory_to_decrypt\n", argv[0]);
+        printf("Example: CLI.exe C:\\Users\\{username}\\Desktop\\\n");
+        printf(".\\CLI.exe -k AA06E65714F2482BBA05B2336956552829AB7268B41F83186AB9E278A0926D84 C:\\  \n");
+    }
+    else if (argc == 2)
     {
         std::vector<std::string> keymatrix = MemExtractor::GetKeyInitialStateMatrix();
-        if (keymatrix.size() < 32)
+        if (keymatrix.size() < 16)
         {
             printf("Error Code : %d", GetLastError());
             return 0;

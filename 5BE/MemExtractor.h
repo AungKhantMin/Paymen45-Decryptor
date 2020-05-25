@@ -20,6 +20,7 @@ class MemExtractor
 public:
 	static std::vector<std::string> GetKeyInitialStateMatrix();
 	static LPVOID GetKey(std::vector<std::string> keymatrix);
+	static BOOL ObtainSeDebugPrivilege();
 protected:
 };
 

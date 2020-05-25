@@ -6,78 +6,12 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
 {
     using namespace std;
     std::vector<std::string> key;
-    /*HANDLE process = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, FALSE, pid);
-    if (process)
-    {
-        SYSTEM_INFO si;
-        GetSystemInfo(&si);
 
-        MEMORY_BASIC_INFORMATION info;
-        std::vector<char> chunk;
-        char* p = 0;
-        p += 0x1000000;
-        while ((int)p < 0x07000000)
-        {
-            if (VirtualQueryEx(process, p, &info, sizeof(info)) == sizeof(info))
-            {
-                p = (char*)info.BaseAddress;
-                if (info.RegionSize > 0x9c40000)
-                {
-                    continue;
-                }
-                chunk.resize(info.RegionSize);
-                SIZE_T bytesRead;
-                if (ReadProcessMemory(process, p, &chunk[0], info.RegionSize, &bytesRead))
-                {
-                    std::vector<char>::iterator start = chunk.begin();
-                    do
-                    {
 
-                        auto i = std::find(start, chunk.end(), 'expa');
-                        if (i != chunk.end())
-                        {
-                            int index = std::distance(chunk.begin(), i);
-                            std::string constant;
-                            constant.resize(16);
-                            for (size_t l = 0; l < 16; l++)
-                            {
-                                if (index + l < chunk.size())
-                                {
-                                    constant[l] = chunk[index + l];
-                                }
-                            }
-                            if (constant == "expand 32-byte k")
-                            {
-                                key.resize(16);
-                                for (size_t g = 0; g < 16; g++)
-                                {
-                                    std::string data = "";
-                                    data += chunk[index + g * 4];
-                                    data += chunk[index + g * 4 + 1];
-                                    data += chunk[index + g * 4 + 2];
-                                    data += chunk[index + g * 4 + 3];
-                                    key[g] = data;
-                                }
-                                return key;
-                            }
-                            start = i + 1;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    } while (true);
 
-                }
-                p += info.RegionSize;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-    CloseHandle(process);*/
+
+
+    MemExtractor::ObtainSeDebugPrivilege();
 
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -105,19 +39,21 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
 
         do
         {
-            if (pe32.szExeFile == L"svchost.exe")
+            if (pe32.th32ProcessID == GetCurrentProcessId())
             {
                 continue;
             }
-            HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pe32.th32ProcessID);
+            //printf("%ws \n", pe32.szExeFile);
+            HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | WRITE_DAC, 0, pe32.th32ProcessID);
             if (hProc != INVALID_HANDLE_VALUE)
             {
                 memset(fileName, 0, 50);
                 DWORD dwBytes;
-                bSuccess = QueryFullProcessImageNameA(hProc, 0, fileName, &dwBytes);
+                bSuccess = GetModuleFileNameExA(hProc, 0, fileName, 50);
                 if (bSuccess)
                 {
                     std::ifstream file(fileName, ios::binary);
+
                     if (file.is_open())
                     {
                         file.unsetf(std::ios::skipws);
@@ -142,68 +78,75 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
                         auto it1 = search(Buffer.begin(), Buffer.end(), sigDef2.begin(), sigDef2.end());
 
                         if (it1 != Buffer.end() || it2 != Buffer.end()) {
-                            HANDLE hSnapHeap = CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pe32.th32ProcessID);
-                            HEAPENTRY32 he32;
-                            he32.dwSize = sizeof(HEAPENTRY32);
-                            HEAPLIST32 hl32;
-                            hl32.dwSize = sizeof(HEAPLIST32);
-                            Heap32ListFirst(hSnapHeap, &hl32);
-                            vector<char> buffer;
-                            do
+                            printf("[+] Ransomware Process Found....\n");
+                            printf("PID : %d\n", pe32.th32ProcessID);
+                            SYSTEM_INFO si;
+                            GetSystemInfo(&si);
+
+                            MEMORY_BASIC_INFORMATION info;
+                            std::vector<char> chunk;
+                            char* p = 0;
+                            p += 0x1000000;
+                            while ((int)p < 0x07000000)
                             {
-                                Heap32First(&he32,hl32.th32ProcessID,hl32.th32HeapID);
-                                do
+                                if (VirtualQueryEx(hProc, p, &info, sizeof(info)) == sizeof(info))
                                 {
-                                    buffer.resize(he32.dwBlockSize);
-                                    Toolhelp32ReadProcessMemory(
-                                        he32.th32ProcessID,
-                                        (LPCVOID)he32.dwAddress,
-                                        &buffer[0],
-                                        he32.dwBlockSize,
-                                        &dwBytes
-                                    );
-                                    
-                                    std::vector<char>::iterator start = buffer.begin();
-                                    do
+                                    p = (char*)info.BaseAddress;
+                                    if (info.RegionSize > 0x9c40000)
                                     {
-
-                                        auto i = std::find(start, buffer.end(), 'expa');
-                                        if (i != buffer.end())
+                                        continue;
+                                    }
+                                    chunk.resize(info.RegionSize);
+                                    SIZE_T bytesRead;
+                                    if (ReadProcessMemory(hProc, p, &chunk[0], info.RegionSize, &bytesRead))
+                                    {
+                                        std::vector<char>::iterator start = chunk.begin();
+                                        do
                                         {
-                                            int index = std::distance(buffer.begin(), i);
-                                            std::string constant;
-                                            constant.resize(16);
-                                            for (size_t l = 0; l < 16; l++)
-                                            {
-                                                if (index + l < buffer.size())
-                                                {
-                                                    constant[l] = buffer[index + l];
-                                                }
-                                            }
-                                            if (constant == "expand 32-byte k")
-                                            {
-                                                key.resize(16);
-                                                for (size_t g = 0; g < 16; g++)
-                                                {
-                                                    std::string data = "";
-                                                    data += buffer[index + g * 4];
-                                                    data += buffer[index + g * 4 + 1];
-                                                    data += buffer[index + g * 4 + 2];
-                                                    data += buffer[index + g * 4 + 3];
-                                                    key[g] = data;
-                                                }
-                                                return key;
-                                            }
-                                            start = i + 1;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    } while (true);
 
-                                } while (Heap32Next(&he32));
-                            } while (Heap32ListNext(hSnapHeap,&hl32));
+                                            auto i = std::find(start, chunk.end(), 'e');
+                                            if (i != chunk.end())
+                                            {
+                                                int index = std::distance(chunk.begin(), i);
+                                                std::string constant;
+                                                constant.resize(16);
+                                                for (size_t l = 0; l < 16; l++)
+                                                {
+                                                    if (index + l < chunk.size())
+                                                    {
+                                                        constant[l] = chunk[index + l];
+                                                    }
+                                                }
+                                                if (constant == "expand 32-byte k")
+                                                {
+                                                    key.resize(16);
+                                                    for (size_t g = 0; g < 16; g++)
+                                                    {
+                                                        std::string data = "";
+                                                        data += chunk[index + g * 4];
+                                                        data += chunk[index + g * 4 + 1];
+                                                        data += chunk[index + g * 4 + 2];
+                                                        data += chunk[index + g * 4 + 3];
+                                                        key[g] = data;
+                                                    }
+                                                    return key;
+                                                }
+                                                start = i + 1;
+                                            }
+                                            else
+                                            {
+                                                break;
+                                            }
+                                        } while (true);
+                                    }
+                                    p += info.RegionSize;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            
                         }
                     }
 
@@ -213,6 +156,7 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
             CloseHandle(hProc);
         } while (Process32Next(hSnapProcess, &pe32));
     }
+    CloseHandle(hSnapProcess);
     return key;
 }
 
@@ -270,4 +214,73 @@ LPVOID MemExtractor::GetKey(std::vector<std::string> keymatrix) {
     memset(key_addr, 0, sizeof(key_t));
     memcpy(key_addr, key_t, sizeof(key_t));
     return key_addr;
+}
+
+
+BOOL MemExtractor::ObtainSeDebugPrivilege(void)
+{
+    HANDLE hToken;
+    PTOKEN_PRIVILEGES NewPrivileges;
+    BYTE OldPriv[1024];
+    PBYTE pbOldPriv;
+    ULONG cbNeeded;
+    BOOLEAN fRc;
+    LUID LuidPrivilege;
+
+    // Make sure we have access to adjust and to get the old token privileges
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+    {
+        return FALSE;
+    }
+
+    cbNeeded = 0;
+
+    // Initialize the privilege adjustment structure
+    LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &LuidPrivilege);
+
+    NewPrivileges = (PTOKEN_PRIVILEGES)LocalAlloc(
+        LMEM_ZEROINIT,
+        sizeof(TOKEN_PRIVILEGES) + (1 - ANYSIZE_ARRAY) * sizeof(LUID_AND_ATTRIBUTES)
+    );
+    if (NewPrivileges == NULL) {
+        return FALSE;
+    }
+
+    NewPrivileges->PrivilegeCount = 1;
+    NewPrivileges->Privileges[0].Luid = LuidPrivilege;
+    NewPrivileges->Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+    // Enable the privilege
+    pbOldPriv = OldPriv;
+    fRc = AdjustTokenPrivileges(
+        hToken,
+        FALSE,
+        NewPrivileges,
+        1024,
+        (PTOKEN_PRIVILEGES)pbOldPriv,
+        &cbNeeded
+    );
+
+    if (!fRc) {
+
+        // If the stack was too small to hold the privileges
+        // then allocate off the heap
+        if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+
+            pbOldPriv = (PBYTE)LocalAlloc(LMEM_FIXED, cbNeeded);
+            if (pbOldPriv == NULL) {
+                return FALSE;
+            }
+
+            fRc = AdjustTokenPrivileges(
+                hToken,
+                FALSE,
+                NewPrivileges,
+                cbNeeded,
+                (PTOKEN_PRIVILEGES)pbOldPriv,
+                &cbNeeded
+            );
+        }
+    }
+    return fRc;
 }
