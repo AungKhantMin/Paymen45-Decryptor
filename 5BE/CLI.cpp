@@ -13,17 +13,14 @@
 
 int main(int argc, char* argv[])
 {
+
+    printf("%s DirectoryToDecrypt\n",argv[0]);
+    printf("%s -k 32ByteDecryptionKey directory_to_decrypt\n", argv[0]);
+    printf("Example: CLI.exe C:\\Users\\{username}\\Desktop\\\n");
+    printf(".\\CLI.exe -k AA06E65714F2482BBA05B2336956552829AB7268B41F83186AB9E278A0926D84 C:\\  \n");
     if (argc < 3)
     {
-
-        printf("%s ransomware_process_id directory_to_decrypt\n",argv[0]);
-        printf("%s -k 32ByteDecryptionKey directory_to_decrypt\n", argv[0]);
-        printf("Example: CLI.exe 1809 C:\\Users\\{username}\\Desktop\\\n");
-    }
-    else if (argc == 3)
-    {
-        DWORD pid = atoi(argv[1]);
-        std::vector<std::string> keymatrix = MemExtractor::GetKeyInitialStateMatrix(pid);
+        std::vector<std::string> keymatrix = MemExtractor::GetKeyInitialStateMatrix();
         if (keymatrix.size() < 32)
         {
             printf("Error Code : %d", GetLastError());
@@ -34,7 +31,7 @@ int main(int argc, char* argv[])
 
         Decryptor::key = key_t;
         Decryptor* decryptor = new Decryptor();
-        std::string startDir = argv[2]; //"C:\\Users\\hades\\Desktop\\Ransomwaer GG\\"
+        std::string startDir = argv[1]; //"C:\\Users\\hades\\Desktop\\Ransomwaer GG\\"
         decryptor->RecursiveSearch(startDir);
         delete key_t;
     }

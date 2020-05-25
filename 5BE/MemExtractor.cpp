@@ -2,7 +2,7 @@
 #include "MemExtractor.h"
 
 
-std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
+std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
 {
     using namespace std;
     std::vector<std::string> key;
