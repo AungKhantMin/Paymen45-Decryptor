@@ -4,8 +4,9 @@
 
 std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
 {
+    using namespace std;
     std::vector<std::string> key;
-    HANDLE process = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, FALSE, pid);
+    /*HANDLE process = OpenProcess(PROCESS_VM_READ | PROCESS_QUERY_INFORMATION, FALSE, pid);
     if (process)
     {
         SYSTEM_INFO si;
@@ -76,7 +77,142 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
             }
         }
     }
-    CloseHandle(process);
+    CloseHandle(process);*/
+
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE hSnapProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    BOOL bSuccess = Process32First(hSnapProcess, &pe32);
+    vector<byte> sigDef1, sigDef2;
+    sigDef1.resize(160);
+    sigDef2.resize(240);
+
+    char temp[161] = "\xC7\x84\x24\xDC\x02\x00\x00\x29\xBF\x93\x13\xC7\x84\x24\x7C\x03\x00\x00\xDE\x9C\xD8\x4A\xC7\x84\x24\xA8\x01\x00\x00\xE9\x64\x33\x33\xC7\x84\x24\x4C\x02\x00\x00\x09\x2E\xA3\x2C\xC7\x84\x24\x18\x02\x00\x00\xFF\xC7\xF3\x0F\xC7\x84\x24\x30\x04\x00\x00\xBC\xDA\x45\x08\xC7\x84\x24\xD4\x01\x00\x00\xF7\x0E\xC1\x01\xC7\x84\x24\x90\x02\x00\x00\x01\xA0\x72\x08\xC7\x84\x24\xE8\x02\x00\x00\x92\xD1\x77\x21\xC7\x84\x24\xEC\x02\x00\x00\xD4\xCC\x77\x18\xC7\x84\x24\xB4\x03\x00\x00\xC6\xB9\xD8\x08\xC7\x84\x24\x28\x03\x00\x00\x13\x1D\x68\x36\xC7\x84\x24\xEC\x03\x00\x00\xE8\xCA\x5D\x43\xC7\x84\x24\xB0\x03\x00\x00\xFA\xDA\xD7\x1D\xC7\x84\x24\x60\x03\x00";
+    char temp2[241] = "\xAC\xC9\xFF\xFF\xC7\x84\x24\xF4\x00\x00\x00\x7A\x0E\x1A\x66\xC7\x84\x24\x44\x01\x00\x00\x09\x20\x1E\x15\xC7\x84\x24\x68\x01\x00\x00\x99\xE4\xF2\x60\xC7\x44\x24\x60\x4E\x41\xC2\x38\xC7\x84\x24\x98\x01\x00\x00\xCE\xE7\x8F\x10\xC7\x44\x24\x54\x84\x55\xCD\x36\xC7\x84\x24\xF8\x00\x00\x00\xCF\x88\x8F\x36\xC7\x44\x24\x2C\xE5\x34\x99\x50\xC7\x84\x24\x90\x01\x00\x00\xE4\x9C\x24\x6D\xC7\x84\x24\x9C\x01\x00\x00\xC3\xB7\x8A\x29\xC7\x84\x24\x9C\x00\x00\x00\x5D\x18\x6E\x16\xC7\x44\x24\x44\xFA\x3F\xBC\x1B\xC7\x44\x24\x30\x32\xE6\x25\x21\xC7\x84\x24\x60\x01\x00\x00\x8E\xCC\x2A\x70\xC7\x84\x24\xE4\x00\x00\x00\xD7\x01\xCD\x4B\xC7\x84\x24\x48\x01\x00\x00\x49\x3D\xB3\x50\xC7\x84\x24\xA8\x00\x00\x00\xA4\xDF\xA9\x46\xC7\x84\x24\xF0\x00\x00\x00\x55\xCA\xB8\x01\xC7\x84\x24\x74\x01\x00\x00\x6C\x65\x09\x77\xC7\x84\x24\x28\x01\x00\x00\x47\x1D\x1E\x63\xC7\x84\x24\xE8\x00\x00\x00\x58\xE9\xBC\x29\xC7\x44\x24\x3C\x80\x55\xA5\x0F\xC7\x84\x24\xCC\x00\x00\x00\xE3\x3E\x65\x7C\xC7";
+
+    for (size_t i = 0; i < 160; i++)
+    {
+        sigDef1[i] = temp[i];
+    }
+    for (size_t i = 0; i < 240; i++)
+    {
+        sigDef2[i] = temp2[i];
+    }
+
+    if (bSuccess)
+    {
+        LPSTR fileName = (LPSTR)malloc(50);
+
+        do
+        {
+            if (pe32.szExeFile == L"svchost.exe")
+            {
+                continue;
+            }
+            HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, pe32.th32ProcessID);
+            if (hProc != INVALID_HANDLE_VALUE)
+            {
+                memset(fileName, 0, 50);
+                DWORD dwBytes;
+                bSuccess = QueryFullProcessImageNameA(hProc, 0, fileName, &dwBytes);
+                if (bSuccess)
+                {
+                    std::ifstream file(fileName, ios::binary);
+                    if (file.is_open())
+                    {
+                        file.unsetf(std::ios::skipws);
+
+                        //Getting File Size
+                        std::streampos fileSize;
+                        file.seekg(0, std::ios::end);
+                        fileSize = file.tellg();
+                        file.seekg(0, std::ios::beg);
+
+                        vector<byte> Buffer;
+                        Buffer.reserve(fileSize);
+
+                        //Read Buffer to vector
+                        Buffer.insert(Buffer.begin(),
+                            istream_iterator<byte>(file),
+                            istream_iterator<byte>());
+                        file.close();
+
+
+                        auto it2 = search(Buffer.begin(), Buffer.end(), sigDef1.begin(), sigDef1.end());
+                        auto it1 = search(Buffer.begin(), Buffer.end(), sigDef2.begin(), sigDef2.end());
+
+                        if (it1 != Buffer.end() || it2 != Buffer.end()) {
+                            HANDLE hSnapHeap = CreateToolhelp32Snapshot(TH32CS_SNAPHEAPLIST, pe32.th32ProcessID);
+                            HEAPENTRY32 he32;
+                            he32.dwSize = sizeof(HEAPENTRY32);
+                            HEAPLIST32 hl32;
+                            hl32.dwSize = sizeof(HEAPLIST32);
+                            Heap32ListFirst(hSnapHeap, &hl32);
+                            vector<char> buffer;
+                            do
+                            {
+                                Heap32First(&he32,hl32.th32ProcessID,hl32.th32HeapID);
+                                do
+                                {
+                                    buffer.resize(he32.dwBlockSize);
+                                    Toolhelp32ReadProcessMemory(
+                                        he32.th32ProcessID,
+                                        (LPCVOID)he32.dwAddress,
+                                        &buffer[0],
+                                        he32.dwBlockSize,
+                                        &dwBytes
+                                    );
+                                    
+                                    std::vector<char>::iterator start = buffer.begin();
+                                    do
+                                    {
+
+                                        auto i = std::find(start, buffer.end(), 'expa');
+                                        if (i != buffer.end())
+                                        {
+                                            int index = std::distance(buffer.begin(), i);
+                                            std::string constant;
+                                            constant.resize(16);
+                                            for (size_t l = 0; l < 16; l++)
+                                            {
+                                                if (index + l < buffer.size())
+                                                {
+                                                    constant[l] = buffer[index + l];
+                                                }
+                                            }
+                                            if (constant == "expand 32-byte k")
+                                            {
+                                                key.resize(16);
+                                                for (size_t g = 0; g < 16; g++)
+                                                {
+                                                    std::string data = "";
+                                                    data += buffer[index + g * 4];
+                                                    data += buffer[index + g * 4 + 1];
+                                                    data += buffer[index + g * 4 + 2];
+                                                    data += buffer[index + g * 4 + 3];
+                                                    key[g] = data;
+                                                }
+                                                return key;
+                                            }
+                                            start = i + 1;
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    } while (true);
+
+                                } while (Heap32Next(&he32));
+                            } while (Heap32ListNext(hSnapHeap,&hl32));
+                        }
+                    }
+
+                }
+
+            }
+            CloseHandle(hProc);
+        } while (Process32Next(hSnapProcess, &pe32));
+    }
     return key;
 }
 

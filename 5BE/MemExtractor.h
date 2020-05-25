@@ -3,9 +3,16 @@
 #include <string>
 #include <vector>
 #include <Windows.h>
-#include <sstream>
-#include <iostream>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
+
+
+#include <TlHelp32.h>
+#include <Psapi.h>
 
 
 class MemExtractor

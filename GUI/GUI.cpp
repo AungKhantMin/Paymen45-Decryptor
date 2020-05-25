@@ -79,7 +79,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     HANDLE hProcessSnap;
     HANDLE hProcess;
     PROCESSENTRY32 pe32;
-    DWORD dwPriorityClass;
     pe32.dwSize = sizeof(PROCESSENTRY32);
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     Process32First(hProcessSnap, &pe32);

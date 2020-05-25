@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
         std::vector<std::string> keymatrix = MemExtractor::GetKeyInitialStateMatrix(pid);
         if (keymatrix.size() < 32)
         {
-            //printf("Error Code : %d", GetLastError());
+            printf("Error Code : %d", GetLastError());
             return 0;
         }
 
