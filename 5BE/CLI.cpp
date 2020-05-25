@@ -24,7 +24,14 @@ int main(int argc, char* argv[])
     {
         DWORD pid = atoi(argv[1]);
         std::vector<std::string> keymatrix = MemExtractor::GetKeyInitialStateMatrix(pid);
+        if (keymatrix.size() < 32)
+        {
+            //printf("Error Code : %d", GetLastError());
+            return 0;
+        }
+
         byte* key_t = (byte*)MemExtractor::GetKey(keymatrix);
+
         Decryptor::key = key_t;
         Decryptor* decryptor = new Decryptor();
         std::string startDir = argv[2]; //"C:\\Users\\hades\\Desktop\\Ransomwaer GG\\"

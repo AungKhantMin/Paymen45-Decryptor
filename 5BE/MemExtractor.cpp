@@ -15,11 +15,15 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
         std::vector<char> chunk;
         char* p = 0;
         p += 0x1000000;
-        while (p < si.lpMaximumApplicationAddress)
+        while ((int)p < 0x07000000)
         {
             if (VirtualQueryEx(process, p, &info, sizeof(info)) == sizeof(info))
             {
                 p = (char*)info.BaseAddress;
+                if (info.RegionSize > 0x9c40000)
+                {
+                    continue;
+                }
                 chunk.resize(info.RegionSize);
                 SIZE_T bytesRead;
                 if (ReadProcessMemory(process, p, &chunk[0], info.RegionSize, &bytesRead))
@@ -28,15 +32,18 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
                     do
                     {
 
-                        auto i = std::find(start, chunk.end(), 'e');
+                        auto i = std::find(start, chunk.end(), 'expa');
                         if (i != chunk.end())
                         {
                             int index = std::distance(chunk.begin(), i);
                             std::string constant;
                             constant.resize(16);
-                            for (size_t i = 0; i < 16; i++)
+                            for (size_t l = 0; l < 16; l++)
                             {
-                                constant[i] = chunk[index + i];
+                                if (index + l < chunk.size())
+                                {
+                                    constant[l] = chunk[index + l];
+                                }
                             }
                             if (constant == "expand 32-byte k")
                             {
@@ -63,8 +70,13 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix(DWORD pid)
                 }
                 p += info.RegionSize;
             }
+            else
+            {
+                break;
+            }
         }
     }
+    CloseHandle(process);
     return key;
 }
 
