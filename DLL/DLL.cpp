@@ -1,17 +1,147 @@
+// DLL.cpp : Defines the exported functions for the DLL.
+//
 #pragma once
-#include "MemExtractor.h"
+
+#include "pch.h"
+#include "framework.h"
+#include "DLL.h"
 
 
-std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
+// This is an example of an exported variable
+
+// This is the constructor of a class that has been exported.
+
+
+
+
+
+
+ BOOL DecFileW(std::string absFilePath,byte* pkey) {
+
+	DWORD dwFileAttributes = GetFileAttributesA(absFilePath.c_str());
+	HANDLE hFile = CreateFileA(absFilePath.c_str(), GENERIC_ALL, 0,
+		NULL, OPEN_EXISTING, dwFileAttributes, NULL);
+	BY_HANDLE_FILE_INFORMATION file;
+	BOOL bSuccess = GetFileInformationByHandle(hFile, &file);
+	std::string orgFile = absFilePath;
+	if (bSuccess)
+	{
+		if (hFile != INVALID_HANDLE_VALUE)
+		{
+			DWORD dwPtr = SetFilePointer(hFile, -520, NULL, 2);
+			if (dwPtr != INVALID_SET_FILE_POINTER)
+			{
+				byte IV[8];
+				DWORD dwByteRead;
+				bSuccess = ReadFile(hFile, IV, 8, &dwByteRead, NULL);
+				dwPtr = SetFilePointer(hFile, -520, NULL, 2);
+				SetEndOfFile(hFile);
+				if (bSuccess)
+				{
+					dwPtr = SetFilePointer(hFile, 0, NULL, 0);
+
+					INT dwSize = file.nFileSizeHigh;
+
+					if (dwSize != 0)
+					{
+						dwSize = ((file.nFileSizeHigh * (MAXDWORD + 1)) + file.nFileSizeLow) - 520;
+					}
+					else
+					{
+						dwSize = file.nFileSizeLow - 520;
+					}
+
+					if (dwSize > 0x19000)
+					{
+						dwSize = 0x19000;
+					}
+					LPVOID lpBuffer = malloc(dwSize);
+					memset(lpBuffer, 0, dwSize);
+					LPVOID lpOutPut = malloc(dwSize);
+					memset(lpBuffer, 0, dwSize);
+					bSuccess = ReadFile(hFile, lpBuffer, dwSize, &dwByteRead, NULL);
+					if (bSuccess)
+					{
+						Salsa20::Decryption salsa20;
+						AlgorithmParameters params = MakeParameters("Rounds", 8)
+							("IV", ConstByteArrayParameter(IV, 8, false));
+						salsa20.SetKey(pkey, 32, params);
+						salsa20.ProcessData((byte*)lpOutPut, (byte*)lpBuffer, dwByteRead);
+						SetFilePointer(hFile, 0, NULL, 0);
+						bSuccess = WriteFile(hFile, lpOutPut, dwByteRead, NULL, NULL);
+						if (bSuccess)
+						{
+							orgFile = orgFile.replace(
+								orgFile.begin() + orgFile.find(".g8R4rqWIp9"),
+								orgFile.end(), "");
+							CloseHandle(hFile);
+							bSuccess = MoveFileA(absFilePath.c_str(), orgFile.c_str());
+							if (!bSuccess)
+							{
+								//printf("%d\n", GetLastError());
+							}
+						}
+					}
+					free(lpBuffer);
+					free(lpOutPut);
+				}
+			}
+			else
+			{
+				bSuccess = FALSE;
+			}
+		}
+
+	}
+    return bSuccess;
+}
+
+ void RecursiveSearch(std::string StartDir = "C:\\") {
+	HANDLE hFile;
+	WIN32_FIND_DATAA file;
+	std::string dir = StartDir + "*";
+
+	hFile = FindFirstFileA(dir.c_str(), &file);
+
+	do {
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+
+		}
+		else
+		{
+			if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				std::string dir = file.cFileName;
+				if (dir != "." && dir != "..")
+				{
+					RecursiveSearch(StartDir + dir + "\\");
+				}
+			}
+			else
+			{
+				std::string fileName = file.cFileName;
+				size_t found = fileName.find(".g8R4rqWIp9");
+				if (found != std::string::npos)
+				{
+					std::string absFilePath = StartDir + fileName;
+					//DecFileW(absFilePath);
+				}
+			}
+		}
+	} while (FindNextFileA(hFile, &file));
+
+	FindClose(hFile);
+}
+
+
+ char* GetKeyInitialStateMatrix()
 {
     using namespace std;
-    std::vector<std::string> key;
-
-
-
-
-
-    MemExtractor::ObtainSeDebugPrivilege();
+    vector<string> key;
+    char* key_s = (char*)malloc(100);
+    memset(key_s, 0, 100);
+    ObtainSeDebugPrivilege();
 
     PROCESSENTRY32 pe32;
     pe32.dwSize = sizeof(PROCESSENTRY32);
@@ -78,8 +208,8 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
                         auto it1 = search(Buffer.begin(), Buffer.end(), sigDef2.begin(), sigDef2.end());
 
                         if (it1 != Buffer.end() || it2 != Buffer.end()) {
-                            printf("[+] Ransomware Process Found....\n");
-                            printf("PID : %d\n", pe32.th32ProcessID);
+                            //printf("[+] Ransomware Process Found....\n");
+                            //printf("PID : %d\n", pe32.th32ProcessID);
                             SYSTEM_INFO si;
                             GetSystemInfo(&si);
 
@@ -129,7 +259,8 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
                                                         data += chunk[index + g * 4 + 3];
                                                         key[g] = data;
                                                     }
-                                                    return key;
+                                                    key_s = (char*)GetKey(key);
+                                                    return key_s;
                                                 }
                                                 start = i + 1;
                                             }
@@ -146,7 +277,7 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
                                     break;
                                 }
                             }
-                            
+
                         }
                     }
 
@@ -157,10 +288,10 @@ std::vector<std::string> MemExtractor::GetKeyInitialStateMatrix()
         } while (Process32Next(hSnapProcess, &pe32));
     }
     CloseHandle(hSnapProcess);
-    return key;
+    return  key_s;
 }
 
-LPVOID MemExtractor::GetKey(std::vector<std::string> keymatrix) {
+ LPVOID GetKey(std::vector<std::string> keymatrix) {
     std::vector<int> keyTemp;
     std::vector<int> key;
     key.resize(8);
@@ -197,7 +328,6 @@ LPVOID MemExtractor::GetKey(std::vector<std::string> keymatrix) {
     char key_s[65];
     wsprintfA(key_s, "%4.X%4.X%4.X%4.X%4.X%4.X%4.X%4.X", key[0], key[1], key[2], key[3], key[4]
         , key[5], key[6], key[7]);
-    std::cout << "Encryption Key : " << key_s << std::endl;
     byte key_t[32];
 
     unsigned int t = 0;
@@ -213,11 +343,11 @@ LPVOID MemExtractor::GetKey(std::vector<std::string> keymatrix) {
     LPVOID key_addr = malloc(sizeof(key_t));
     memset(key_addr, 0, sizeof(key_t));
     memcpy(key_addr, key_t, sizeof(key_t));
-    return key_addr;
+    return key_s;
 }
 
 
-BOOL MemExtractor::ObtainSeDebugPrivilege(void)
+ BOOL ObtainSeDebugPrivilege(void)
 {
     HANDLE hToken;
     PTOKEN_PRIVILEGES NewPrivileges;

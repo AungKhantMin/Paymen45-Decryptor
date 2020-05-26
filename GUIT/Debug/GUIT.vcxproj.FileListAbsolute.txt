@@ -1,0 +1,3 @@
+C:\Users\hades\source\repos\5BE\GUIT\Debug\GUIT.vcxprojAssemblyReference.cache
+C:\Users\hades\source\repos\5BE\GUIT\Debug\GUIT.Form1.resources
+C:\Users\hades\source\repos\5BE\GUIT\Debug\GUIT.vcxproj.GenerateResource.cache
