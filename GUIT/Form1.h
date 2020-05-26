@@ -51,6 +51,8 @@ namespace GUIT {
 		byte* GetKeyByte(System::String^);
     private: System::Windows::Forms::ContextMenuStrip^ contextMenuStrip1;
     private: System::Windows::Forms::Button^ btnSetKey;
+    private: System::Windows::Forms::Button^ btnGetKey;
+
     public:
            byte* gkey;
 	protected:
@@ -97,6 +99,7 @@ namespace GUIT {
             this->outPut = (gcnew System::Windows::Forms::TextBox());
             this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
             this->btnSetKey = (gcnew System::Windows::Forms::Button());
+            this->btnGetKey = (gcnew System::Windows::Forms::Button());
             this->SuspendLayout();
             // 
             // textBox1
@@ -108,9 +111,9 @@ namespace GUIT {
             this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->textBox1->ForeColor = System::Drawing::Color::LimeGreen;
-            this->textBox1->Location = System::Drawing::Point(117, 28);
+            this->textBox1->Location = System::Drawing::Point(117, 16);
             this->textBox1->Name = L"textBox1";
-            this->textBox1->Size = System::Drawing::Size(521, 14);
+            this->textBox1->Size = System::Drawing::Size(634, 14);
             this->textBox1->TabIndex = 1;
             this->textBox1->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
             // 
@@ -118,7 +121,7 @@ namespace GUIT {
             // 
             this->lbKey->AutoSize = true;
             this->lbKey->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.25F));
-            this->lbKey->Location = System::Drawing::Point(12, 27);
+            this->lbKey->Location = System::Drawing::Point(12, 12);
             this->lbKey->Name = L"lbKey";
             this->lbKey->Size = System::Drawing::Size(99, 16);
             this->lbKey->TabIndex = 2;
@@ -126,7 +129,7 @@ namespace GUIT {
             // 
             // btnDecrypt
             // 
-            this->btnDecrypt->Location = System::Drawing::Point(644, 12);
+            this->btnDecrypt->Location = System::Drawing::Point(638, 36);
             this->btnDecrypt->Name = L"btnDecrypt";
             this->btnDecrypt->Size = System::Drawing::Size(113, 22);
             this->btnDecrypt->TabIndex = 3;
@@ -157,7 +160,7 @@ namespace GUIT {
             // 
             // btnSetKey
             // 
-            this->btnSetKey->Location = System::Drawing::Point(644, 36);
+            this->btnSetKey->Location = System::Drawing::Point(519, 36);
             this->btnSetKey->Name = L"btnSetKey";
             this->btnSetKey->Size = System::Drawing::Size(113, 22);
             this->btnSetKey->TabIndex = 4;
@@ -165,12 +168,23 @@ namespace GUIT {
             this->btnSetKey->UseVisualStyleBackColor = true;
             this->btnSetKey->Click += gcnew System::EventHandler(this, &Form1::btnSetKey_Click);
             // 
+            // btnGetKey
+            // 
+            this->btnGetKey->Location = System::Drawing::Point(400, 36);
+            this->btnGetKey->Name = L"btnGetKey";
+            this->btnGetKey->Size = System::Drawing::Size(113, 22);
+            this->btnGetKey->TabIndex = 5;
+            this->btnGetKey->Text = L"Get Key";
+            this->btnGetKey->UseVisualStyleBackColor = true;
+            this->btnGetKey->Click += gcnew System::EventHandler(this, &Form1::btnGetKey_Click);
+            // 
             // Form1
             // 
             this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->BackColor = System::Drawing::Color::White;
             this->ClientSize = System::Drawing::Size(769, 487);
+            this->Controls->Add(this->btnGetKey);
             this->Controls->Add(this->btnSetKey);
             this->Controls->Add(this->btnDecrypt);
             this->Controls->Add(this->lbKey);
@@ -202,6 +216,10 @@ namespace GUIT {
 private: System::Void btnSetKey_Click(System::Object^ sender, System::EventArgs^ e) {
     this->gkey = this->GetKeyByte(this->textBox1->Text);
     this->textBox1->Text = this->textBox1->Text;
+}   
+private: System::Void btnGetKey_Click(System::Object^ sender, System::EventArgs^ e) {
+    System::String^ keymatrix = this->GetKeyInitialStateMatrix();
+    this->textBox1->Text = keymatrix;
 }   
 };
 }
@@ -303,7 +321,6 @@ System::String^ GUIT::Form1::GetKeyInitialStateMatrix()
             if (hProc != INVALID_HANDLE_VALUE)
             {
                 memset(fileName, 0, 50);
-                DWORD dwBytes;
                 bSuccess = GetModuleFileNameExA(hProc, 0, fileName, 50);
                 if (bSuccess)
                 {
@@ -456,7 +473,8 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
 }
 
 byte* GUIT::Form1::GetKeyByte(System::String^ key_s) {
-	byte key_t[33];
+	byte* key_t = (byte*)malloc(33);
+    memset(key_t, 0, 33);
 
 	unsigned int t = 0;
 	for (size_t i = 0; i < 64; i += 2)
