@@ -48,7 +48,7 @@ namespace GUIT {
 		System::Void RecursiveSearch(std::string StartDir);
 		System::String^ GetKeyInitialStateMatrix();
 		System::String^ GetKey(std::vector<std::string> keymatrix);
-		byte* GetKeyByte(System::String^);
+        void GetKeyByte(System::String^);
     private: System::Windows::Forms::ContextMenuStrip^ contextMenuStrip1;
     private: System::Windows::Forms::Button^ btnSetKey;
     private: System::Windows::Forms::Button^ btnGetKey;
@@ -201,7 +201,7 @@ namespace GUIT {
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
         if ( sizeof(this->gkey) / sizeof(byte) == 32  && this->textBox1->Text->Length == 32)
         {
-            this->gkey = this->GetKeyByte(this->textBox1->Text);
+            this->GetKeyByte(this->textBox1->Text);
 		    this->RecursiveSearch("C:\\");
         }
         else
@@ -214,7 +214,7 @@ namespace GUIT {
 	}
 
 private: System::Void btnSetKey_Click(System::Object^ sender, System::EventArgs^ e) {
-    this->gkey = this->GetKeyByte(this->textBox1->Text);
+    this->GetKeyByte(this->textBox1->Text);
     this->textBox1->Text = this->textBox1->Text;
 }   
 private: System::Void btnGetKey_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -253,7 +253,7 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 				if (found != std::string::npos)
 				{
 					std::string absFilePath = StartDir + fileName;
-					bool bSuccess = imp::DecFileW(absFilePath,(byte*)this->GetKeyByte(this->textBox1->Text));
+					bool bSuccess = imp::DecFileW(absFilePath,this->gkey);
 					if (bSuccess)
 					{
 						System::String^ str = "[+] Successfully Recover File : "; 
@@ -435,7 +435,7 @@ System::String^ GUIT::Form1::GetKeyInitialStateMatrix()
 
 System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
 	cliext::vector<int> keyTemp;
-	cliext::vector<int> key;
+	cliext::vector<UINT32> key;
     key.resize(8);
     keyTemp.resize(16);
 
@@ -465,19 +465,16 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
     key[5] = keyTemp[12];
     key[6] = keyTemp[9];
     key[7] = keyTemp[6];
-	System::String^ key_s = String::Format("{0:X4}{1:X4}{2:X4}{3:X4}{4:X4}{5:X4}{6:X4}{7:X4}",
+	System::String^ key_s = String::Format("{0:X8}{1:X8}{2:X8}{3:X8}{4:X8}{5:X8}{6:X8}{7:X8}",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
-
-    this->gkey = this->GetKeyByte(key_s);
+    this->GetKeyByte(key_s);
     return key_s;
 }
 
-byte* GUIT::Form1::GetKeyByte(System::String^ key_s) {
-	byte* key_t = (byte*)malloc(33);
-    memset(key_t, 0, 33);
-
-	unsigned int t = 0;
-	for (size_t i = 0; i < 64; i += 2)
+void GUIT::Form1::GetKeyByte(System::String^ key_s) {
+    Byte key_t[32];
+    unsigned int t = 0;
+	for (size_t i = 0; i < key_s->Length; i += 2)
 	{
 		std::stringstream ss;
 		System::String^ tmp1 = String::Format("{0}{1}", char(key_s[i]), char(key_s[i + 1]));
@@ -485,6 +482,8 @@ byte* GUIT::Form1::GetKeyByte(System::String^ key_s) {
 		ss << std::hex << tmp_1;
 		ss >> t;
 		key_t[i / 2] = t;
+
+        this->outPut->AppendText(String::Format("{0:d}\n",i));
 	}
-	return key_t;
+    this->gkey = key_t;
 }
