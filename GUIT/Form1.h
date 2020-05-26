@@ -483,7 +483,7 @@ void GUIT::Form1::GetKeyByte(System::String^ key_s) {
 		ss >> t;
 		key_t[i / 2] = t;
 
-        this->outPut->AppendText(String::Format("{0:d}\n",i));
+        //this->outPut->AppendText(String::Format("{0:d}\n",i));
 	}
     this->gkey = key_t;
 }
