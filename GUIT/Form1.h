@@ -128,7 +128,7 @@ namespace GUIT {
             // outPut
             // 
             this->outPut->AccessibleRole = System::Windows::Forms::AccessibleRole::Text;
-            this->outPut->BackColor = System::Drawing::Color::Silver;
+            this->outPut->BackColor = System::Drawing::Color::Black;
             this->outPut->BorderStyle = System::Windows::Forms::BorderStyle::None;
             this->outPut->Cursor = System::Windows::Forms::Cursors::No;
             this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
@@ -141,6 +141,7 @@ namespace GUIT {
             this->outPut->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
             this->outPut->Size = System::Drawing::Size(745, 390);
             this->outPut->TabIndex = 0;
+            this->outPut->Text = L"test";
             // 
             // Form1
             // 
