@@ -23,7 +23,7 @@ DLL_API int fnDLL(void)
 
 
 
- BOOL DecFile(std::string absFilePath) {
+ BOOL DecFileW(std::string absFilePath) {
 
 	DWORD dwFileAttributes = GetFileAttributesA(absFilePath.c_str());
 	HANDLE hFile = CreateFileA(absFilePath.c_str(), GENERIC_ALL, 0,
@@ -132,7 +132,7 @@ DLL_API int fnDLL(void)
 				if (found != std::string::npos)
 				{
 					std::string absFilePath = StartDir + fileName;
-					DecFile(absFilePath);
+					DecFileW(absFilePath);
 				}
 			}
 		}

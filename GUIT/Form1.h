@@ -87,7 +87,6 @@ namespace GUIT {
 			this->textBox1->BackColor = System::Drawing::Color::White;
 			this->textBox1->BorderStyle = System::Windows::Forms::BorderStyle::None;
 			this->textBox1->Cursor = System::Windows::Forms::Cursors::No;
-			this->textBox1->Enabled = false;
 			this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 11.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
 			this->textBox1->ForeColor = System::Drawing::Color::Red;
@@ -124,7 +123,6 @@ namespace GUIT {
 			this->outPut->BackColor = System::Drawing::Color::Black;
 			this->outPut->BorderStyle = System::Windows::Forms::BorderStyle::None;
 			this->outPut->Cursor = System::Windows::Forms::Cursors::No;
-			this->outPut->Enabled = false;
 			this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
 			this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
@@ -156,7 +154,7 @@ namespace GUIT {
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
 		char* keymatrix = imp::GetKeyInitialStateMatrix();
 		System::String^ temp = gcnew System::String(keymatrix);
-		this->textBox1->Text = temp;
+		this->textBox1->AppendText(temp);
 		this->RecursiveSearch("C:\\");
 	}
 };
