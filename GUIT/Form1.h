@@ -1,5 +1,12 @@
 #pragma once
 
+#include <string>
+#include <Windows.h>
+
+
+
+
+
 
 namespace GUIT {
 
@@ -9,6 +16,15 @@ namespace GUIT {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+
+	value struct imp
+	{
+	public:
+		[System::Runtime::InteropServices::DllImport("DLL.dll")]
+		static char* GetKeyInitialStateMatrix();
+		[System::Runtime::InteropServices::DllImport("DLL.dll")]
+		static bool DecFileW(std::string);
+	};
 
 	/// <summary>
 	/// Summary for Form1
@@ -23,6 +39,7 @@ namespace GUIT {
 			//TODO: Add the constructor code here
 			//
 		}
+		System::Void RecursiveSearch(std::string StartDir);
 
 	protected:
 		/// <summary>
@@ -70,13 +87,16 @@ namespace GUIT {
 			this->textBox1->BackColor = System::Drawing::Color::White;
 			this->textBox1->BorderStyle = System::Windows::Forms::BorderStyle::None;
 			this->textBox1->Cursor = System::Windows::Forms::Cursors::No;
+			this->textBox1->Enabled = false;
+			this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 11.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(0)));
 			this->textBox1->ForeColor = System::Drawing::Color::Red;
 			this->textBox1->Location = System::Drawing::Point(117, 15);
 			this->textBox1->Multiline = true;
 			this->textBox1->Name = L"textBox1";
+			this->textBox1->ReadOnly = true;
 			this->textBox1->Size = System::Drawing::Size(521, 35);
 			this->textBox1->TabIndex = 1;
-			this->textBox1->ReadOnly = true;
 			// 
 			// lbKey
 			// 
@@ -134,7 +154,62 @@ namespace GUIT {
 		}
 #pragma endregion
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
-		
+		char* keymatrix = imp::GetKeyInitialStateMatrix();
+		System::String^ temp = gcnew System::String(keymatrix);
+		this->textBox1->Text = temp;
+		this->RecursiveSearch("C:\\");
 	}
 };
+}
+
+System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
+	HANDLE hFile;
+	WIN32_FIND_DATAA file;
+	std::string dir = StartDir + "*";
+
+	hFile = FindFirstFileA(dir.c_str(), &file);
+
+	do {
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+
+		}
+		else
+		{
+			if (file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				std::string dir = file.cFileName;
+				if (dir != "." && dir != "..")
+				{
+					this->RecursiveSearch(StartDir + dir + "\\");
+				}
+			}
+			else
+			{
+				std::string fileName = file.cFileName;
+				size_t found = fileName.find(".g8R4rqWIp9");
+				if (found != std::string::npos)
+				{
+					std::string absFilePath = StartDir + fileName;
+					bool bSuccess = imp::DecFileW(absFilePath);
+					if (bSuccess)
+					{
+						System::String^ str = "[+] Successfully Recover File : "; 
+						System::String^ file = gcnew System::String(absFilePath.c_str());
+						str = str + file + "\n";
+						this->outPut->AppendText(str);
+					}
+					else
+					{
+						System::String^ str = "[+] Failed to Recover File : ";
+						System::String^ file = gcnew System::String(absFilePath.c_str());
+						str = str + file + "\n";
+						this->outPut->AppendText(str);
+					}
+				}
+			}
+		}
+	} while (FindNextFileA(hFile, &file));
+
+	FindClose(hFile);
 }

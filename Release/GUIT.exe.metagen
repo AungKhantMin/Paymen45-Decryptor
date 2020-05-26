@@ -20,3 +20,5 @@ Class GUIT.Form1: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
   Fields:
     System.Windows.Forms.TextBox textBox1 : Public
     System.Windows.Forms.TextBox outPut : Public
+  Methods:
+    RecursiveSearch(basic_string<char\,std::char_traits<char>\,std::allocator<char> >*): PrivateScope, Public, HideBySig
