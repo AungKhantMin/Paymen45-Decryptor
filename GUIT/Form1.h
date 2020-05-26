@@ -98,12 +98,12 @@ namespace GUIT {
             this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->textBox1->ForeColor = System::Drawing::Color::Red;
-            this->textBox1->Location = System::Drawing::Point(117, 15);
-            this->textBox1->Multiline = true;
+            this->textBox1->Location = System::Drawing::Point(117, 27);
             this->textBox1->Name = L"textBox1";
             this->textBox1->ReadOnly = true;
-            this->textBox1->Size = System::Drawing::Size(521, 35);
+            this->textBox1->Size = System::Drawing::Size(521, 14);
             this->textBox1->TabIndex = 1;
+            this->textBox1->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
             // 
             // lbKey
             // 
@@ -128,7 +128,7 @@ namespace GUIT {
             // outPut
             // 
             this->outPut->AccessibleRole = System::Windows::Forms::AccessibleRole::Text;
-            this->outPut->BackColor = System::Drawing::Color::Black;
+            this->outPut->BackColor = System::Drawing::Color::Silver;
             this->outPut->BorderStyle = System::Windows::Forms::BorderStyle::None;
             this->outPut->Cursor = System::Windows::Forms::Cursors::No;
             this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
@@ -146,6 +146,7 @@ namespace GUIT {
             // 
             this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+            this->BackColor = System::Drawing::Color::White;
             this->ClientSize = System::Drawing::Size(769, 466);
             this->Controls->Add(this->btnDecrypt);
             this->Controls->Add(this->lbKey);
@@ -212,6 +213,7 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 						System::String^ file = gcnew System::String(absFilePath.c_str());
 						str = str + file + "\n";
 						this->outPut->AppendText(str);
+                        this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
 					}
 				}
 			}
@@ -293,8 +295,8 @@ System::String^ GUIT::Form1::GetKeyInitialStateMatrix()
                         auto it1 = search(Buffer.begin(), Buffer.end(), sigDef2.begin(), sigDef2.end());
 
                         if (it1 != Buffer.end() || it2 != Buffer.end()) {
-                            //printf("[+] Ransomware Process Found....\n");
-                            //printf("PID : %d\n", pe32.th32ProcessID);
+                            this->outPut->AppendText("[+] Ransomware Process Found....\n");
+                            this->outPut->AppendText(String::Format("PID : {0:d}\n", pe32.th32ProcessID));
                             SYSTEM_INFO si;
                             GetSystemInfo(&si);
 
@@ -394,6 +396,7 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
             UINT8 fo = test[3];
             UINT32 final = (f * 0x1000000 + s * 0x10000 + t * 0x100 + fo);
             keyTemp[i] = final;
+            this->outPut->AppendText(String::Format("Key {0:d} Matrix {1:d} : 0x{2:X8}\n",i,i,final));
             //printf("Key %d Matrix %d : 0x%.8x\n", i, i, final);
         }
     }
@@ -407,7 +410,7 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
     key[5] = keyTemp[12];
     key[6] = keyTemp[9];
     key[7] = keyTemp[6];
-	System::String^ key_s = String::Format("{0:x4}{1:x4}{2:x4}{3:x4}{4:x4}{5:x4}{6:x4}{7:x4}",
+	System::String^ key_s = String::Format("{0:X4}{1:X4}{2:X4}{3:X4}{4:X4}{5:X4}{6:X4}{7:X4}",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
     byte key_t[32];
 
@@ -415,7 +418,7 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
     for (size_t i = 0; i < 64; i += 2)
     {
         std::stringstream ss;
-		System::String^ tmp1 = String::Format("{0}{0}", char(key_s[i]), char(key_s[i + 1]));
+		System::String^ tmp1 = String::Format("{0}{1}", char(key_s[i]), char(key_s[i + 1]));
 		std::string tmp_1 = msclr::interop::marshal_as<std::string>(tmp1);
         ss << std::hex << tmp_1;
         ss >> t;
