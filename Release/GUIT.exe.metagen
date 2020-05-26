@@ -20,7 +20,7 @@ Class GUIT.Form1: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
   :System.Windows.Forms.Form
     Void .ctor(): PrivateScope, Public, HideBySig, SpecialName, RTSpecialName
   Fields:
-    SByte* gkey : Public
+    Byte* gkey : Public
     System.Windows.Forms.TextBox textBox1 : Public
     System.Windows.Forms.TextBox outPut : Public
   Methods:

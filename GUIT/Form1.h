@@ -50,10 +50,9 @@ namespace GUIT {
 		System::String^ GetKey(std::vector<std::string> keymatrix);
 		byte* GetKeyByte(System::String^);
     private: System::Windows::Forms::ContextMenuStrip^ contextMenuStrip1;
+    private: System::Windows::Forms::Button^ btnSetKey;
     public:
-
-
-           char* gkey;
+           byte* gkey;
 	protected:
 		/// <summary>
 		/// Clean up any resources being used.
@@ -97,6 +96,7 @@ namespace GUIT {
             this->btnDecrypt = (gcnew System::Windows::Forms::Button());
             this->outPut = (gcnew System::Windows::Forms::TextBox());
             this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
+            this->btnSetKey = (gcnew System::Windows::Forms::Button());
             this->SuspendLayout();
             // 
             // textBox1
@@ -108,7 +108,7 @@ namespace GUIT {
             this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->textBox1->ForeColor = System::Drawing::Color::LimeGreen;
-            this->textBox1->Location = System::Drawing::Point(117, 22);
+            this->textBox1->Location = System::Drawing::Point(117, 28);
             this->textBox1->Name = L"textBox1";
             this->textBox1->Size = System::Drawing::Size(521, 14);
             this->textBox1->TabIndex = 1;
@@ -118,7 +118,7 @@ namespace GUIT {
             // 
             this->lbKey->AutoSize = true;
             this->lbKey->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.25F));
-            this->lbKey->Location = System::Drawing::Point(12, 20);
+            this->lbKey->Location = System::Drawing::Point(12, 27);
             this->lbKey->Name = L"lbKey";
             this->lbKey->Size = System::Drawing::Size(99, 16);
             this->lbKey->TabIndex = 2;
@@ -128,7 +128,7 @@ namespace GUIT {
             // 
             this->btnDecrypt->Location = System::Drawing::Point(644, 12);
             this->btnDecrypt->Name = L"btnDecrypt";
-            this->btnDecrypt->Size = System::Drawing::Size(113, 35);
+            this->btnDecrypt->Size = System::Drawing::Size(113, 22);
             this->btnDecrypt->TabIndex = 3;
             this->btnDecrypt->Text = L"Decrypt";
             this->btnDecrypt->UseVisualStyleBackColor = true;
@@ -142,12 +142,12 @@ namespace GUIT {
             this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
-            this->outPut->Location = System::Drawing::Point(12, 64);
+            this->outPut->Location = System::Drawing::Point(0, 73);
             this->outPut->Multiline = true;
             this->outPut->Name = L"outPut";
             this->outPut->ReadOnly = true;
             this->outPut->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
-            this->outPut->Size = System::Drawing::Size(745, 404);
+            this->outPut->Size = System::Drawing::Size(769, 414);
             this->outPut->TabIndex = 0;
             // 
             // contextMenuStrip1
@@ -155,12 +155,23 @@ namespace GUIT {
             this->contextMenuStrip1->Name = L"contextMenuStrip1";
             this->contextMenuStrip1->Size = System::Drawing::Size(61, 4);
             // 
+            // btnSetKey
+            // 
+            this->btnSetKey->Location = System::Drawing::Point(644, 36);
+            this->btnSetKey->Name = L"btnSetKey";
+            this->btnSetKey->Size = System::Drawing::Size(113, 22);
+            this->btnSetKey->TabIndex = 4;
+            this->btnSetKey->Text = L"Set Key";
+            this->btnSetKey->UseVisualStyleBackColor = true;
+            this->btnSetKey->Click += gcnew System::EventHandler(this, &Form1::btnSetKey_Click);
+            // 
             // Form1
             // 
             this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->BackColor = System::Drawing::Color::White;
-            this->ClientSize = System::Drawing::Size(769, 479);
+            this->ClientSize = System::Drawing::Size(769, 487);
+            this->Controls->Add(this->btnSetKey);
             this->Controls->Add(this->btnDecrypt);
             this->Controls->Add(this->lbKey);
             this->Controls->Add(this->textBox1);
@@ -174,20 +185,24 @@ namespace GUIT {
         }
 #pragma endregion
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
-        if (this->textBox1->Text != "" && this->textBox1->Text->Length == 32)
+        if ( sizeof(this->gkey) / sizeof(byte) == 32  && this->textBox1->Text->Length == 32)
         {
-            this->gkey = (char*)this->GetKeyByte(this->textBox1->Text);
+            this->gkey = this->GetKeyByte(this->textBox1->Text);
 		    this->RecursiveSearch("C:\\");
         }
         else
         {
             System::String^ keymatrix = this->GetKeyInitialStateMatrix();
-            this->textBox1->AppendText(keymatrix);
+            this->textBox1->Text = keymatrix;
             this->RecursiveSearch("C:\\");
         }
 
 	}
 
+private: System::Void btnSetKey_Click(System::Object^ sender, System::EventArgs^ e) {
+    this->gkey = this->GetKeyByte(this->textBox1->Text);
+    this->textBox1->Text = this->textBox1->Text;
+}   
 };
 }
 
@@ -436,9 +451,7 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
 	System::String^ key_s = String::Format("{0:X4}{1:X4}{2:X4}{3:X4}{4:X4}{5:X4}{6:X4}{7:X4}",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
 
-	byte key_t[33];
-	memcpy(key_t,this->GetKeyByte(key_s),sizeof(key_t));
-    this->gkey = (char*)key_t;
+    this->gkey = this->GetKeyByte(key_s);
     return key_s;
 }
 
