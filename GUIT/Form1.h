@@ -436,17 +436,14 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
 	System::String^ key_s = String::Format("{0:X4}{1:X4}{2:X4}{3:X4}{4:X4}{5:X4}{6:X4}{7:X4}",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
 
-	byte key_t[32];
+	byte key_t[33];
 	memcpy(key_t,this->GetKeyByte(key_s),sizeof(key_t));
-    LPVOID key_addr = malloc(sizeof(key_t));
-    memset(key_addr, 0, sizeof(key_t));
-    memcpy(key_addr, key_t, sizeof(key_t));
-    this->gkey = (char*)key_addr;
+    this->gkey = (char*)key_t;
     return key_s;
 }
 
 byte* GUIT::Form1::GetKeyByte(System::String^ key_s) {
-	byte key_t[32];
+	byte key_t[33];
 
 	unsigned int t = 0;
 	for (size_t i = 0; i < 64; i += 2)
