@@ -21,7 +21,7 @@ namespace GUIT {
 	{
 	public:
 		[System::Runtime::InteropServices::DllImport("DLL.dll")]
-		static char* GetKeyInitialStateMatrix();
+		static IntPtr GetKeyInitialStateMatrix();
 		[System::Runtime::InteropServices::DllImport("DLL.dll")]
 		static bool DecFileW(std::string);
 	};
@@ -152,8 +152,8 @@ namespace GUIT {
 		}
 #pragma endregion
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
-		char* keymatrix = imp::GetKeyInitialStateMatrix();
-		System::String^ temp = gcnew System::String(keymatrix);
+		IntPtr keymatrix = imp::GetKeyInitialStateMatrix();
+		System::String^ temp = Runtime::InteropServices::Marshal::PtrToStringAnsi(keymatrix);
 		this->textBox1->AppendText(temp);
 		this->RecursiveSearch("C:\\");
 	}
@@ -193,6 +193,7 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 					if (bSuccess)
 					{
 						System::String^ str = "[+] Successfully Recover File : "; 
+						this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
 						System::String^ file = gcnew System::String(absFilePath.c_str());
 						str = str + file + "\n";
 						this->outPut->AppendText(str);
@@ -200,6 +201,7 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 					else
 					{
 						System::String^ str = "[+] Failed to Recover File : ";
+						this->outPut->ForeColor = System::Drawing::Color::Red;
 						System::String^ file = gcnew System::String(absFilePath.c_str());
 						str = str + file + "\n";
 						this->outPut->AppendText(str);
