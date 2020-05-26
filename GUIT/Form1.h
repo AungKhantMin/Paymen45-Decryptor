@@ -48,7 +48,12 @@ namespace GUIT {
 		System::Void RecursiveSearch(std::string StartDir);
 		System::String^ GetKeyInitialStateMatrix();
 		System::String^ GetKey(std::vector<std::string> keymatrix);
-		char* gkey;
+		byte* GetKeyByte(System::String^);
+    private: System::Windows::Forms::ContextMenuStrip^ contextMenuStrip1;
+    public:
+
+
+           char* gkey;
 	protected:
 		/// <summary>
 		/// Clean up any resources being used.
@@ -65,6 +70,8 @@ namespace GUIT {
 	private: System::Windows::Forms::Label^ lbKey;
 	private: System::Windows::Forms::Button^ btnDecrypt;
 	public: System::Windows::Forms::TextBox^ outPut;
+    private: System::ComponentModel::IContainer^ components;
+    public:
 
 	protected:
 
@@ -74,7 +81,7 @@ namespace GUIT {
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		System::ComponentModel::Container ^components;
+
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -83,24 +90,26 @@ namespace GUIT {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+            this->components = (gcnew System::ComponentModel::Container());
             System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Form1::typeid));
             this->textBox1 = (gcnew System::Windows::Forms::TextBox());
             this->lbKey = (gcnew System::Windows::Forms::Label());
             this->btnDecrypt = (gcnew System::Windows::Forms::Button());
             this->outPut = (gcnew System::Windows::Forms::TextBox());
+            this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
             this->SuspendLayout();
             // 
             // textBox1
             // 
-            this->textBox1->BackColor = System::Drawing::Color::White;
+            this->textBox1->AccessibleRole = System::Windows::Forms::AccessibleRole::Text;
+            this->textBox1->BackColor = System::Drawing::Color::Black;
             this->textBox1->BorderStyle = System::Windows::Forms::BorderStyle::None;
-            this->textBox1->Cursor = System::Windows::Forms::Cursors::No;
+            this->textBox1->Cursor = System::Windows::Forms::Cursors::IBeam;
             this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
-            this->textBox1->ForeColor = System::Drawing::Color::Red;
-            this->textBox1->Location = System::Drawing::Point(117, 27);
+            this->textBox1->ForeColor = System::Drawing::Color::LimeGreen;
+            this->textBox1->Location = System::Drawing::Point(117, 22);
             this->textBox1->Name = L"textBox1";
-            this->textBox1->ReadOnly = true;
             this->textBox1->Size = System::Drawing::Size(521, 14);
             this->textBox1->TabIndex = 1;
             this->textBox1->TextAlign = System::Windows::Forms::HorizontalAlignment::Center;
@@ -109,7 +118,7 @@ namespace GUIT {
             // 
             this->lbKey->AutoSize = true;
             this->lbKey->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.25F));
-            this->lbKey->Location = System::Drawing::Point(12, 25);
+            this->lbKey->Location = System::Drawing::Point(12, 20);
             this->lbKey->Name = L"lbKey";
             this->lbKey->Size = System::Drawing::Size(99, 16);
             this->lbKey->TabIndex = 2;
@@ -117,7 +126,7 @@ namespace GUIT {
             // 
             // btnDecrypt
             // 
-            this->btnDecrypt->Location = System::Drawing::Point(644, 15);
+            this->btnDecrypt->Location = System::Drawing::Point(644, 12);
             this->btnDecrypt->Name = L"btnDecrypt";
             this->btnDecrypt->Size = System::Drawing::Size(113, 35);
             this->btnDecrypt->TabIndex = 3;
@@ -127,11 +136,10 @@ namespace GUIT {
             // 
             // outPut
             // 
-            this->outPut->AccessibleRole = System::Windows::Forms::AccessibleRole::Text;
             this->outPut->BackColor = System::Drawing::Color::Black;
             this->outPut->BorderStyle = System::Windows::Forms::BorderStyle::None;
-            this->outPut->Cursor = System::Windows::Forms::Cursors::No;
-            this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+            this->outPut->Cursor = System::Windows::Forms::Cursors::IBeam;
+            this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 9, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
             this->outPut->Location = System::Drawing::Point(12, 64);
@@ -139,16 +147,20 @@ namespace GUIT {
             this->outPut->Name = L"outPut";
             this->outPut->ReadOnly = true;
             this->outPut->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
-            this->outPut->Size = System::Drawing::Size(745, 390);
+            this->outPut->Size = System::Drawing::Size(745, 404);
             this->outPut->TabIndex = 0;
-            this->outPut->Text = L"test";
+            // 
+            // contextMenuStrip1
+            // 
+            this->contextMenuStrip1->Name = L"contextMenuStrip1";
+            this->contextMenuStrip1->Size = System::Drawing::Size(61, 4);
             // 
             // Form1
             // 
             this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->BackColor = System::Drawing::Color::White;
-            this->ClientSize = System::Drawing::Size(769, 466);
+            this->ClientSize = System::Drawing::Size(769, 479);
             this->Controls->Add(this->btnDecrypt);
             this->Controls->Add(this->lbKey);
             this->Controls->Add(this->textBox1);
@@ -162,10 +174,20 @@ namespace GUIT {
         }
 #pragma endregion
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
-		System::String^ keymatrix = this->GetKeyInitialStateMatrix();
-		this->textBox1->AppendText(keymatrix);
-		this->RecursiveSearch("C:\\");
+        if (this->textBox1->Text != "" && this->textBox1->Text->Length == 32)
+        {
+            this->gkey = (char*)this->GetKeyByte(this->textBox1->Text);
+		    this->RecursiveSearch("C:\\");
+        }
+        else
+        {
+            System::String^ keymatrix = this->GetKeyInitialStateMatrix();
+            this->textBox1->AppendText(keymatrix);
+            this->RecursiveSearch("C:\\");
+        }
+
 	}
+
 };
 }
 
@@ -198,7 +220,7 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 				if (found != std::string::npos)
 				{
 					std::string absFilePath = StartDir + fileName;
-					bool bSuccess = imp::DecFileW(absFilePath,(byte*)this->gkey);
+					bool bSuccess = imp::DecFileW(absFilePath,(byte*)this->GetKeyByte(this->textBox1->Text));
 					if (bSuccess)
 					{
 						System::String^ str = "[+] Successfully Recover File : "; 
@@ -413,21 +435,28 @@ System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
     key[7] = keyTemp[6];
 	System::String^ key_s = String::Format("{0:X4}{1:X4}{2:X4}{3:X4}{4:X4}{5:X4}{6:X4}{7:X4}",
 		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
-    byte key_t[32];
 
-    unsigned int t = 0;
-    for (size_t i = 0; i < 64; i += 2)
-    {
-        std::stringstream ss;
-		System::String^ tmp1 = String::Format("{0}{1}", char(key_s[i]), char(key_s[i + 1]));
-		std::string tmp_1 = msclr::interop::marshal_as<std::string>(tmp1);
-        ss << std::hex << tmp_1;
-        ss >> t;
-        key_t[i / 2] = t;
-    }
+	byte key_t[32];
+	memcpy(key_t,this->GetKeyByte(key_s),sizeof(key_t));
     LPVOID key_addr = malloc(sizeof(key_t));
     memset(key_addr, 0, sizeof(key_t));
     memcpy(key_addr, key_t, sizeof(key_t));
     this->gkey = (char*)key_addr;
     return key_s;
+}
+
+byte* GUIT::Form1::GetKeyByte(System::String^ key_s) {
+	byte key_t[32];
+
+	unsigned int t = 0;
+	for (size_t i = 0; i < 64; i += 2)
+	{
+		std::stringstream ss;
+		System::String^ tmp1 = String::Format("{0}{1}", char(key_s[i]), char(key_s[i + 1]));
+		std::string tmp_1 = msclr::interop::marshal_as<std::string>(tmp1);
+		ss << std::hex << tmp_1;
+		ss >> t;
+		key_t[i / 2] = t;
+	}
+	return key_t;
 }
