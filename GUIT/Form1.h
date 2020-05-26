@@ -199,7 +199,7 @@ namespace GUIT {
         }
 #pragma endregion
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
-        if ( sizeof(this->gkey) / sizeof(byte) == 32  && this->textBox1->Text->Length == 32)
+        if ( sizeof(this->gkey) / sizeof(byte) == 32  || this->textBox1->Text->Length == 64)
         {
             this->GetKeyByte(this->textBox1->Text);
 		    this->RecursiveSearch("C:\\");
