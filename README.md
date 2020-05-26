@@ -1,8 +1,6 @@
 ## Decryptor For Paymen45 Ransomware (.g8R4rqWIp9)
 
 
-### Two Features Support 
-
 #### Automatic Decryption Key Extraction From Ransomware Process Memory And Decrypt File Using it
 
 ```cmd
@@ -17,6 +15,15 @@
 ```
 
 > Example: .\CLI.exe -k AA06E65714F2482BBA05B2336956552829AB7268B41F83186AB9E278A0926D84 C:\  
+
+
+#### Run GUI.exe If yu want to use GUI
+
+> Use Get Key Button To Extract Key From Ransomware Process And You can safe it to use Later. Use Decrypt Button Do Decrypt Files.
+
+<img src="Screen Shot 2020-05-27 at 02.05.28.png"/>
+
+
 
 
 # Warning!!!!!
