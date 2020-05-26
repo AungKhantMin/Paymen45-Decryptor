@@ -2,7 +2,15 @@
 
 #include <string>
 #include <Windows.h>
-
+#include <TlHelp32.h>
+#include <Psapi.h>
+#include <iterator>
+#include <algorithm>
+#include <minwinbase.h>
+#include <fstream>
+#include <sstream>
+#include <cliext/vector>
+#include <msclr\marshal_cppstd.h>
 
 
 
@@ -21,9 +29,7 @@ namespace GUIT {
 	{
 	public:
 		[System::Runtime::InteropServices::DllImport("DLL.dll")]
-		static IntPtr GetKeyInitialStateMatrix();
-		[System::Runtime::InteropServices::DllImport("DLL.dll")]
-		static bool DecFileW(std::string);
+		static bool DecFileW(std::string,byte*);
 	};
 
 	/// <summary>
@@ -40,7 +46,9 @@ namespace GUIT {
 			//
 		}
 		System::Void RecursiveSearch(std::string StartDir);
-
+		System::String^ GetKeyInitialStateMatrix();
+		System::String^ GetKey(std::vector<std::string> keymatrix);
+		char* gkey;
 	protected:
 		/// <summary>
 		/// Clean up any resources being used.
@@ -75,86 +83,85 @@ namespace GUIT {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Form1::typeid));
-			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
-			this->lbKey = (gcnew System::Windows::Forms::Label());
-			this->btnDecrypt = (gcnew System::Windows::Forms::Button());
-			this->outPut = (gcnew System::Windows::Forms::TextBox());
-			this->SuspendLayout();
-			// 
-			// textBox1
-			// 
-			this->textBox1->BackColor = System::Drawing::Color::White;
-			this->textBox1->BorderStyle = System::Windows::Forms::BorderStyle::None;
-			this->textBox1->Cursor = System::Windows::Forms::Cursors::No;
-			this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 11.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(0)));
-			this->textBox1->ForeColor = System::Drawing::Color::Red;
-			this->textBox1->Location = System::Drawing::Point(117, 15);
-			this->textBox1->Multiline = true;
-			this->textBox1->Name = L"textBox1";
-			this->textBox1->ReadOnly = true;
-			this->textBox1->Size = System::Drawing::Size(521, 35);
-			this->textBox1->TabIndex = 1;
-			// 
-			// lbKey
-			// 
-			this->lbKey->AutoSize = true;
-			this->lbKey->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.25F));
-			this->lbKey->Location = System::Drawing::Point(12, 25);
-			this->lbKey->Name = L"lbKey";
-			this->lbKey->Size = System::Drawing::Size(99, 16);
-			this->lbKey->TabIndex = 2;
-			this->lbKey->Text = L"Decryption Key";
-			// 
-			// btnDecrypt
-			// 
-			this->btnDecrypt->Location = System::Drawing::Point(644, 15);
-			this->btnDecrypt->Name = L"btnDecrypt";
-			this->btnDecrypt->Size = System::Drawing::Size(113, 35);
-			this->btnDecrypt->TabIndex = 3;
-			this->btnDecrypt->Text = L"Decrypt";
-			this->btnDecrypt->UseVisualStyleBackColor = true;
-			this->btnDecrypt->Click += gcnew System::EventHandler(this, &Form1::btnDecrypt_Click);
-			// 
-			// outPut
-			// 
-			this->outPut->AccessibleRole = System::Windows::Forms::AccessibleRole::Text;
-			this->outPut->BackColor = System::Drawing::Color::Black;
-			this->outPut->BorderStyle = System::Windows::Forms::BorderStyle::None;
-			this->outPut->Cursor = System::Windows::Forms::Cursors::No;
-			this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(0)));
-			this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
-			this->outPut->Location = System::Drawing::Point(12, 64);
-			this->outPut->Multiline = true;
-			this->outPut->Name = L"outPut";
-			this->outPut->ReadOnly = true;
-			this->outPut->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
-			this->outPut->Size = System::Drawing::Size(745, 390);
-			this->outPut->TabIndex = 0;
-			// 
-			// Form1
-			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
-			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(769, 466);
-			this->Controls->Add(this->btnDecrypt);
-			this->Controls->Add(this->lbKey);
-			this->Controls->Add(this->textBox1);
-			this->Controls->Add(this->outPut);
-			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
-			this->Name = L"Form1";
-			this->Text = L"Paymen45 (.g8R4rqWIp9) Decryptor";
-			this->ResumeLayout(false);
-			this->PerformLayout();
+            System::ComponentModel::ComponentResourceManager^ resources = (gcnew System::ComponentModel::ComponentResourceManager(Form1::typeid));
+            this->textBox1 = (gcnew System::Windows::Forms::TextBox());
+            this->lbKey = (gcnew System::Windows::Forms::Label());
+            this->btnDecrypt = (gcnew System::Windows::Forms::Button());
+            this->outPut = (gcnew System::Windows::Forms::TextBox());
+            this->SuspendLayout();
+            // 
+            // textBox1
+            // 
+            this->textBox1->BackColor = System::Drawing::Color::White;
+            this->textBox1->BorderStyle = System::Windows::Forms::BorderStyle::None;
+            this->textBox1->Cursor = System::Windows::Forms::Cursors::No;
+            this->textBox1->Font = (gcnew System::Drawing::Font(L"Arial", 9, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
+                static_cast<System::Byte>(0)));
+            this->textBox1->ForeColor = System::Drawing::Color::Red;
+            this->textBox1->Location = System::Drawing::Point(117, 15);
+            this->textBox1->Multiline = true;
+            this->textBox1->Name = L"textBox1";
+            this->textBox1->ReadOnly = true;
+            this->textBox1->Size = System::Drawing::Size(521, 35);
+            this->textBox1->TabIndex = 1;
+            // 
+            // lbKey
+            // 
+            this->lbKey->AutoSize = true;
+            this->lbKey->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 9.25F));
+            this->lbKey->Location = System::Drawing::Point(12, 25);
+            this->lbKey->Name = L"lbKey";
+            this->lbKey->Size = System::Drawing::Size(99, 16);
+            this->lbKey->TabIndex = 2;
+            this->lbKey->Text = L"Decryption Key";
+            // 
+            // btnDecrypt
+            // 
+            this->btnDecrypt->Location = System::Drawing::Point(644, 15);
+            this->btnDecrypt->Name = L"btnDecrypt";
+            this->btnDecrypt->Size = System::Drawing::Size(113, 35);
+            this->btnDecrypt->TabIndex = 3;
+            this->btnDecrypt->Text = L"Decrypt";
+            this->btnDecrypt->UseVisualStyleBackColor = true;
+            this->btnDecrypt->Click += gcnew System::EventHandler(this, &Form1::btnDecrypt_Click);
+            // 
+            // outPut
+            // 
+            this->outPut->AccessibleRole = System::Windows::Forms::AccessibleRole::Text;
+            this->outPut->BackColor = System::Drawing::Color::Black;
+            this->outPut->BorderStyle = System::Windows::Forms::BorderStyle::None;
+            this->outPut->Cursor = System::Windows::Forms::Cursors::No;
+            this->outPut->Font = (gcnew System::Drawing::Font(L"Consolas", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+                static_cast<System::Byte>(0)));
+            this->outPut->ForeColor = System::Drawing::Color::LimeGreen;
+            this->outPut->Location = System::Drawing::Point(12, 64);
+            this->outPut->Multiline = true;
+            this->outPut->Name = L"outPut";
+            this->outPut->ReadOnly = true;
+            this->outPut->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
+            this->outPut->Size = System::Drawing::Size(745, 390);
+            this->outPut->TabIndex = 0;
+            // 
+            // Form1
+            // 
+            this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
+            this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+            this->ClientSize = System::Drawing::Size(769, 466);
+            this->Controls->Add(this->btnDecrypt);
+            this->Controls->Add(this->lbKey);
+            this->Controls->Add(this->textBox1);
+            this->Controls->Add(this->outPut);
+            this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
+            this->Name = L"Form1";
+            this->Text = L"Paymen45 (.g8R4rqWIp9) Decryptor";
+            this->ResumeLayout(false);
+            this->PerformLayout();
 
-		}
+        }
 #pragma endregion
 	private: System::Void btnDecrypt_Click(System::Object^ sender, System::EventArgs^ e) {
-		IntPtr keymatrix = imp::GetKeyInitialStateMatrix();
-		System::String^ temp = Runtime::InteropServices::Marshal::PtrToStringAnsi(keymatrix);
-		this->textBox1->AppendText(temp);
+		System::String^ keymatrix = this->GetKeyInitialStateMatrix();
+		this->textBox1->AppendText(keymatrix);
 		this->RecursiveSearch("C:\\");
 	}
 };
@@ -189,7 +196,7 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 				if (found != std::string::npos)
 				{
 					std::string absFilePath = StartDir + fileName;
-					bool bSuccess = imp::DecFileW(absFilePath);
+					bool bSuccess = imp::DecFileW(absFilePath,(byte*)this->gkey);
 					if (bSuccess)
 					{
 						System::String^ str = "[+] Successfully Recover File : "; 
@@ -212,4 +219,211 @@ System::Void GUIT::Form1::RecursiveSearch(std::string StartDir){
 	} while (FindNextFileA(hFile, &file));
 
 	FindClose(hFile);
+}
+
+
+
+System::String^ GUIT::Form1::GetKeyInitialStateMatrix()
+{
+    using namespace std;
+    vector<string> key;
+	System::String^ key_s;
+    PROCESSENTRY32 pe32;
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE hSnapProcess = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    BOOL bSuccess = Process32First(hSnapProcess, &pe32);
+    vector<byte> sigDef1, sigDef2;
+    sigDef1.resize(160);
+    sigDef2.resize(240);
+
+    char temp[161] = "\xC7\x84\x24\xDC\x02\x00\x00\x29\xBF\x93\x13\xC7\x84\x24\x7C\x03\x00\x00\xDE\x9C\xD8\x4A\xC7\x84\x24\xA8\x01\x00\x00\xE9\x64\x33\x33\xC7\x84\x24\x4C\x02\x00\x00\x09\x2E\xA3\x2C\xC7\x84\x24\x18\x02\x00\x00\xFF\xC7\xF3\x0F\xC7\x84\x24\x30\x04\x00\x00\xBC\xDA\x45\x08\xC7\x84\x24\xD4\x01\x00\x00\xF7\x0E\xC1\x01\xC7\x84\x24\x90\x02\x00\x00\x01\xA0\x72\x08\xC7\x84\x24\xE8\x02\x00\x00\x92\xD1\x77\x21\xC7\x84\x24\xEC\x02\x00\x00\xD4\xCC\x77\x18\xC7\x84\x24\xB4\x03\x00\x00\xC6\xB9\xD8\x08\xC7\x84\x24\x28\x03\x00\x00\x13\x1D\x68\x36\xC7\x84\x24\xEC\x03\x00\x00\xE8\xCA\x5D\x43\xC7\x84\x24\xB0\x03\x00\x00\xFA\xDA\xD7\x1D\xC7\x84\x24\x60\x03\x00";
+    char temp2[241] = "\xAC\xC9\xFF\xFF\xC7\x84\x24\xF4\x00\x00\x00\x7A\x0E\x1A\x66\xC7\x84\x24\x44\x01\x00\x00\x09\x20\x1E\x15\xC7\x84\x24\x68\x01\x00\x00\x99\xE4\xF2\x60\xC7\x44\x24\x60\x4E\x41\xC2\x38\xC7\x84\x24\x98\x01\x00\x00\xCE\xE7\x8F\x10\xC7\x44\x24\x54\x84\x55\xCD\x36\xC7\x84\x24\xF8\x00\x00\x00\xCF\x88\x8F\x36\xC7\x44\x24\x2C\xE5\x34\x99\x50\xC7\x84\x24\x90\x01\x00\x00\xE4\x9C\x24\x6D\xC7\x84\x24\x9C\x01\x00\x00\xC3\xB7\x8A\x29\xC7\x84\x24\x9C\x00\x00\x00\x5D\x18\x6E\x16\xC7\x44\x24\x44\xFA\x3F\xBC\x1B\xC7\x44\x24\x30\x32\xE6\x25\x21\xC7\x84\x24\x60\x01\x00\x00\x8E\xCC\x2A\x70\xC7\x84\x24\xE4\x00\x00\x00\xD7\x01\xCD\x4B\xC7\x84\x24\x48\x01\x00\x00\x49\x3D\xB3\x50\xC7\x84\x24\xA8\x00\x00\x00\xA4\xDF\xA9\x46\xC7\x84\x24\xF0\x00\x00\x00\x55\xCA\xB8\x01\xC7\x84\x24\x74\x01\x00\x00\x6C\x65\x09\x77\xC7\x84\x24\x28\x01\x00\x00\x47\x1D\x1E\x63\xC7\x84\x24\xE8\x00\x00\x00\x58\xE9\xBC\x29\xC7\x44\x24\x3C\x80\x55\xA5\x0F\xC7\x84\x24\xCC\x00\x00\x00\xE3\x3E\x65\x7C\xC7";
+
+    for (size_t i = 0; i < 160; i++)
+    {
+        sigDef1[i] = temp[i];
+    }
+    for (size_t i = 0; i < 240; i++)
+    {
+        sigDef2[i] = temp2[i];
+    }
+
+    if (bSuccess)
+    {
+        LPSTR fileName = (LPSTR)malloc(50);
+
+        do
+        {
+            if (pe32.th32ProcessID == GetCurrentProcessId())
+            {
+                continue;
+            }
+            //printf("%ws \n", pe32.szExeFile);
+            HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | WRITE_DAC, 0, pe32.th32ProcessID);
+            if (hProc != INVALID_HANDLE_VALUE)
+            {
+                memset(fileName, 0, 50);
+                DWORD dwBytes;
+                bSuccess = GetModuleFileNameExA(hProc, 0, fileName, 50);
+                if (bSuccess)
+                {
+                    std::ifstream file(fileName, ios::binary);
+
+                    if (file.is_open())
+                    {
+                        file.unsetf(std::ios::skipws);
+
+                        //Getting File Size
+                        std::streampos fileSize;
+                        file.seekg(0, std::ios::end);
+                        fileSize = file.tellg();
+                        file.seekg(0, std::ios::beg);
+
+                        vector<byte> Buffer;
+                        Buffer.reserve(fileSize);
+
+                        //Read Buffer to vector
+                        Buffer.insert(Buffer.begin(),
+                            istream_iterator<byte>(file),
+                            istream_iterator<byte>());
+                        file.close();
+
+
+                        auto it2 = search(Buffer.begin(), Buffer.end(), sigDef1.begin(), sigDef1.end());
+                        auto it1 = search(Buffer.begin(), Buffer.end(), sigDef2.begin(), sigDef2.end());
+
+                        if (it1 != Buffer.end() || it2 != Buffer.end()) {
+                            //printf("[+] Ransomware Process Found....\n");
+                            //printf("PID : %d\n", pe32.th32ProcessID);
+                            SYSTEM_INFO si;
+                            GetSystemInfo(&si);
+
+                            MEMORY_BASIC_INFORMATION info;
+                            std::vector<char> chunk;
+                            char* p = 0;
+                            p += 0x1000000;
+                            while ((int)p < 0x07000000)
+                            {
+                                if (VirtualQueryEx(hProc, p, &info, sizeof(info)) == sizeof(info))
+                                {
+                                    p = (char*)info.BaseAddress;
+                                    if (info.RegionSize > 0x9c40000)
+                                    {
+                                        continue;
+                                    }
+                                    chunk.resize(info.RegionSize);
+                                    SIZE_T bytesRead;
+                                    if (ReadProcessMemory(hProc, p, &chunk[0], info.RegionSize, &bytesRead))
+                                    {
+                                        std::vector<char>::iterator start = chunk.begin();
+                                        do
+                                        {
+
+                                            auto i = std::find(start, chunk.end(), 'e');
+                                            if (i != chunk.end())
+                                            {
+                                                int index = std::distance(chunk.begin(), i);
+                                                std::string constant;
+                                                constant.resize(16);
+                                                for (size_t l = 0; l < 16; l++)
+                                                {
+                                                    if (index + l < chunk.size())
+                                                    {
+                                                        constant[l] = chunk[index + l];
+                                                    }
+                                                }
+                                                if (constant == "expand 32-byte k")
+                                                {
+                                                    key.resize(16);
+                                                    for (size_t g = 0; g < 16; g++)
+                                                    {
+                                                        std::string data = "";
+                                                        data += chunk[index + g * 4];
+                                                        data += chunk[index + g * 4 + 1];
+                                                        data += chunk[index + g * 4 + 2];
+                                                        data += chunk[index + g * 4 + 3];
+                                                        key[g] = data;
+                                                    }
+                                                    key_s = GetKey(key);
+                                                    return key_s;
+                                                }
+                                                start = i + 1;
+                                            }
+                                            else
+                                            {
+                                                break;
+                                            }
+                                        } while (true);
+                                    }
+                                    p += info.RegionSize;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+
+                }
+
+            }
+            CloseHandle(hProc);
+        } while (Process32Next(hSnapProcess, &pe32));
+    }
+    CloseHandle(hSnapProcess);
+    return  key_s;
+}
+
+System::String^ GUIT::Form1::GetKey(std::vector<std::string> keymatrix) {
+	cliext::vector<int> keyTemp;
+	cliext::vector<int> key;
+    key.resize(8);
+    keyTemp.resize(16);
+
+
+    if (keymatrix.begin() != keymatrix.end())
+    {
+        for (size_t i = 0; i < 16; i++)
+        {
+            const char* test = keymatrix[i].c_str();
+            UINT8 f = test[0];
+            UINT8 s = test[1];
+            UINT8 t = test[2];
+            UINT8 fo = test[3];
+            UINT32 final = (f * 0x1000000 + s * 0x10000 + t * 0x100 + fo);
+            keyTemp[i] = final;
+            //printf("Key %d Matrix %d : 0x%.8x\n", i, i, final);
+        }
+    }
+
+
+    key[0] = keyTemp[13];
+    key[1] = keyTemp[10];
+    key[2] = keyTemp[7];
+    key[3] = keyTemp[4];
+    key[4] = keyTemp[15];
+    key[5] = keyTemp[12];
+    key[6] = keyTemp[9];
+    key[7] = keyTemp[6];
+	System::String^ key_s = String::Format("{0:x4}{1:x4}{2:x4}{3:x4}{4:x4}{5:x4}{6:x4}{7:x4}",
+		key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
+    byte key_t[32];
+
+    unsigned int t = 0;
+    for (size_t i = 0; i < 64; i += 2)
+    {
+        std::stringstream ss;
+		System::String^ tmp1 = String::Format("{0}{0}", char(key_s[i]), char(key_s[i + 1]));
+		std::string tmp_1 = msclr::interop::marshal_as<std::string>(tmp1);
+        ss << std::hex << tmp_1;
+        ss >> t;
+        key_t[i / 2] = t;
+    }
+    LPVOID key_addr = malloc(sizeof(key_t));
+    memset(key_addr, 0, sizeof(key_t));
+    memcpy(key_addr, key_t, sizeof(key_t));
+    this->gkey = (char*)key_addr;
+    return key_s;
 }

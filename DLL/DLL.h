@@ -24,8 +24,7 @@ extern "C" {
 	DLL_API char* GetKeyInitialStateMatrix();
 	DLL_API LPVOID  GetKey(std::vector<std::string> keymatrix);
 	DLL_API BOOL  ObtainSeDebugPrivilege();
-	DLL_API BOOL DecFileW(std::string absFilePath);
-	DLL_API byte* gkey;
+	DLL_API BOOL DecFileW(std::string absFilePath,byte*);
 	DLL_API void  RecursiveSearch(std::string);
 	DLL_API void printMsg(BOOL, LPCSTR);
 }
